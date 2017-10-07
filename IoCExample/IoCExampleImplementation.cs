@@ -7,6 +7,17 @@
 
     public class IoCExampleImplementation
     {
+        private Dictionary<Type, Type> mapping;
+
+        public Dictionary<Type, Type> Mapping
+        {
+            get
+            {
+                this.mapping = this.mapping ?? new Dictionary<Type, Type>();
+                return this.mapping;
+            }
+        }
+
         public T Create<T>()
         {
             return (T)this.Create(typeof(T));
@@ -14,7 +25,13 @@
 
         private object Create(Type type)
         {
-            ConstructorInfo constructorInfo = type.GetConstructors().Single();
+            Type instanceType;
+            if (!Mapping.TryGetValue(type, out instanceType))
+            {
+                instanceType = type;
+            }
+
+            ConstructorInfo constructorInfo = instanceType.GetConstructors().Single();
 
             List<object> parameters = null;
             ParameterInfo[] constructorParameters = constructorInfo.GetParameters();
@@ -31,7 +48,7 @@
             }
             else
             {
-                instance = Activator.CreateInstance(type);
+                instance = Activator.CreateInstance(instanceType);
             }
 
             return instance;
